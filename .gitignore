@@ -29,9 +29,9 @@
 # 配置文件（可能包含敏感信息）
 .env
 *.env
-/backend/configs/*.local.yaml
-/backend/configs/*.prod.yaml
-/backend/configs/config.yaml
+# /backend/configs/*.local.yaml
+# /backend/configs/*.prod.yaml
+# /backend/configs/config.yaml
 
 # 临时文件
 *.tmp
