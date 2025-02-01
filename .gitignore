@@ -1,0 +1,103 @@
+# 编译输出
+/backend/bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# IDE 相关
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# 依赖目录
+/backend/vendor/
+/frontend/node_modules/
+/frontend/dist/
+/frontend/build/
+
+# 日志文件
+*.log
+/logs/
+/backend/logs/
+
+# 配置文件（可能包含敏感信息）
+.env
+*.env
+/backend/configs/*.local.yaml
+/backend/configs/*.prod.yaml
+/backend/configs/config.yaml
+
+# 临时文件
+*.tmp
+*.temp
+.temp/
+tmp/
+
+# 缓存文件
+.cache/
+*.cache
+
+# 测试覆盖率报告
+coverage.txt
+coverage.html
+
+# 数据库文件
+*.db
+*.sqlite
+
+# 前端相关
+.npm
+.eslintcache
+.next
+.nuxt
+.cache
+.parcel-cache
+dist
+build
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# 系统文件
+.DS_Store
+Thumbs.db
+
+# 证书文件
+*.pem
+*.key
+*.crt
+
+# 其他
+*.bak
+*.swp
+*.swo
+*~
+
+# Go特定
+# 如果使用 Go Modules，可以注释掉这行
+# /backend/vendor/
+
+# 二进制文件
+/backend/collector
+/backend/analyzer
+/backend/master
+
+# 本地开发配置
+/backend/configs/config.dev.yaml
+/backend/configs/config.local.yaml
+
+# 测试数据
+/testdata/
+/backend/testdata/
+
+# 文档生成
+/docs/_site/
+/docs/.jekyll-cache/
+/docs/.jekyll-metadata 
