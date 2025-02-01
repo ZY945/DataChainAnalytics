@@ -1,33 +1,40 @@
 package service
 
 import (
+	"fmt"
+	"log"
+
+	"github.com/gin-gonic/gin"
+	"github.com/yourusername/projectname/internal/collector/api"
+	"github.com/yourusername/projectname/internal/collector/config"
 	"github.com/yourusername/projectname/pkg/persistence/mysql"
 )
 
 type CollectorService struct {
-	db *mysql.Client
+	config   *config.Config
+	db       *mysql.Client
+	router   *gin.Engine
+	handlers *api.Handlers
 }
 
-func NewCollectorService(db *mysql.Client) *CollectorService {
-	return &CollectorService{
-		db: db,
+func NewCollectorService(cfg *config.Config, db *mysql.Client) *CollectorService {
+	router := gin.Default()
+	handlers := api.NewHandlers(db, cfg)
+
+	service := &CollectorService{
+		config:   cfg,
+		db:       db,
+		router:   router,
+		handlers: handlers,
 	}
+
+	// 注册路由
+	handlers.RegisterRoutes(router)
+	return service
 }
 
 func (s *CollectorService) Start() error {
-	// TODO: 实现采集服务启动逻辑
-	return nil
-}
-
-// 示例数据模型
-type CollectedData struct {
-	ID        uint   `gorm:"primarykey"`
-	Source    string `gorm:"type:varchar(100)"`
-	Content   string `gorm:"type:text"`
-	CreatedAt int64  `gorm:"autoCreateTime"`
-}
-
-// 保存数据的方法
-func (s *CollectorService) SaveData(data *CollectedData) error {
-	return s.db.DB().Create(data).Error
+	addr := fmt.Sprintf("%s:%d", s.config.Server.Host, s.config.Server.Port)
+	log.Printf("Collector service starting on %s...", addr)
+	return s.router.Run(addr)
 }

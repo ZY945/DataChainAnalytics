@@ -16,19 +16,16 @@ type Config struct {
 	} `yaml:"server"`
 
 	Database struct {
-		// MySQL mysql.Config `yaml:"mysql"`
-		CollectorDB mysql.Config `yaml:"collector_db"`
+		AnalyzerDB mysql.Config `yaml:"analyzer_db"`
 	} `yaml:"database"`
 
-	Collector struct {
+	Analyzer struct {
 		Interval  int `yaml:"interval"`
 		BatchSize int `yaml:"batch_size"`
-	} `yaml:"collector"`
+	} `yaml:"analyzer"`
 }
 
-// LoadConfig 加载配置文件
 func LoadConfig(configPath string) (*Config, error) {
-	// 如果传入的是相对路径，转换为绝对路径
 	if !filepath.IsAbs(configPath) {
 		pwd, err := os.Getwd()
 		if err != nil {

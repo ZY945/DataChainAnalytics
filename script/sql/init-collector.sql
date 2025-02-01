@@ -1,7 +1,44 @@
--- 创建数据库
+-- 创建采集器数据库
 CREATE DATABASE IF NOT EXISTS collector_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 
 USE collector_db;
+
+-- 创建区块数据表
+CREATE TABLE IF NOT EXISTS block_data (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    block_number BIGINT UNSIGNED NOT NULL COMMENT '区块高度',
+    block_hash VARCHAR(66) NOT NULL COMMENT '区块哈希',
+    parent_hash VARCHAR(66) NOT NULL COMMENT '父区块哈希',
+    timestamp BIGINT UNSIGNED NOT NULL COMMENT '区块时间戳',
+    transactions_count INT UNSIGNED NOT NULL COMMENT '交易数量',
+    gas_used BIGINT UNSIGNED NOT NULL COMMENT '使用的gas',
+    gas_limit BIGINT UNSIGNED NOT NULL COMMENT 'gas限制',
+    raw_data JSON COMMENT '原始区块数据',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY `idx_block_number` (`block_number`),
+    UNIQUE KEY `idx_block_hash` (`block_hash`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='区块数据表';
+
+-- 创建交易数据表
+CREATE TABLE IF NOT EXISTS transaction_data (
+    id BIGINT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+    tx_hash VARCHAR(66) NOT NULL COMMENT '交易哈希',
+    block_number BIGINT UNSIGNED NOT NULL COMMENT '区块高度',
+    from_address VARCHAR(42) NOT NULL COMMENT '发送地址',
+    to_address VARCHAR(42) COMMENT '接收地址',
+    value VARCHAR(78) NOT NULL COMMENT '交易金额',
+    gas_price BIGINT UNSIGNED NOT NULL COMMENT 'gas价格',
+    gas_used BIGINT UNSIGNED NOT NULL COMMENT '使用的gas',
+    status TINYINT NOT NULL COMMENT '交易状态 1:成功 0:失败',
+    raw_data JSON COMMENT '原始交易数据',
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    UNIQUE KEY `idx_tx_hash` (`tx_hash`),
+    KEY `idx_block_number` (`block_number`),
+    KEY `idx_from_address` (`from_address`),
+    KEY `idx_to_address` (`to_address`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='交易数据表';
 
 -- 配置表
 CREATE TABLE IF NOT EXISTS collector_configs (

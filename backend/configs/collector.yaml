@@ -1,0 +1,18 @@
+server:
+  host: "0.0.0.0"
+  port: 8080
+
+database:
+  collector_db:
+    host: "localhost"
+    port: 3306
+    user: "collector_user"
+    password: "collector_password_123"
+    dbname: "collector_db"
+    charset: "utf8mb4"
+    parse_time: true
+    loc: "Local"
+
+collector:
+  interval: 5  # 采集间隔（秒）
+  batch_size: 100  # 批量处理大小 
