@@ -13,12 +13,13 @@ export default {
     welcome: 'Welcome to Blockchain Data Platform'
   },
   blocks: {
-    title: 'Block List',
+    title: 'Solana Block List',
     columns: {
-      number: 'Block Number',
+      number: 'Block Height',
       hash: 'Block Hash',
       timestamp: 'Timestamp',
-      transactions: 'Transactions'
+      transactions: 'Transactions',
+      parentHash: 'Parent Hash'
     }
   },
   transactions: {

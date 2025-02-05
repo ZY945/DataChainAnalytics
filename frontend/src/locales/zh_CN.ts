@@ -13,12 +13,13 @@ export default {
     welcome: '欢迎使用区块链数据管理平台'
   },
   blocks: {
-    title: '区块列表',
+    title: 'Solana 区块列表',
     columns: {
       number: '区块高度',
       hash: '区块哈希',
       timestamp: '时间戳',
-      transactions: '交易数量'
+      transactions: '交易数量',
+      parentHash: '父区块哈希'
     }
   },
   transactions: {

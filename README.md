@@ -36,7 +36,18 @@
 └── docs/ # 项目文档
 ```
 
+## 启动方式
 
+1. 启动后端
+```
+cd backend
+go run cmd/collector/main.go
+```
+2. 启动前端
+```
+cd frontend
+npm run dev
+```
 
 ## 系统架构
 
