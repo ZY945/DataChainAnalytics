@@ -1,12 +1,15 @@
 package api
 
 import (
+	"log"
 	"net/http"
 	"time"
 
+	"backend/internal/collector/config"
 	"backend/internal/collector/model"
 	"backend/internal/notify"
 	"backend/pkg/persistence/mysql"
+	alltick "backend/pkg/utils/alltick"
 
 	"github.com/gin-gonic/gin"
 )
@@ -144,5 +147,70 @@ func (h *Handlers) SendFeishuMessage(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Message sent successfully",
+	})
+}
+
+// SendFeishuMessage 发送飞书消息
+func (h *Handlers) SendFeishuMessageGold(c *gin.Context) {
+	var req struct {
+		Title   string `json:"title" binding:"required"`
+		Content string `json:"content" binding:"required"`
+		Type    string `json:"type" binding:"required,oneof=info warning error"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// 转换消息类型
+	var msgType notify.NotifyType
+	switch req.Type {
+	case "info":
+		msgType = notify.TypeInfo
+	case "warning":
+		msgType = notify.TypeWarning
+	case "error":
+		msgType = notify.TypeError
+	}
+
+	// 发送消息
+	if err := h.notifier.Send(msgType, req.Title, req.Content); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Message sent successfully",
+	})
+}
+
+// GetGoldPrice 获取黄金价格并发送飞书通知
+func (h *Handlers) GetGoldPrice(c *gin.Context) {
+	cfg, ok := h.config.(*config.Config)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid config type"})
+		return
+	}
+
+	// 获取黄金价格
+	goldPrice, err := alltick.HttpGoldPrice(cfg.Gold.Token)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// 构造消息内容
+	content := goldPrice
+	log.Println("黄金价格：", content)
+	// 发送飞书消息
+	if err := h.notifier.Send(notify.TypeInfo, "黄金价格更新", content); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Gold price fetched and notification sent",
+		"data":    goldPrice,
 	})
 }

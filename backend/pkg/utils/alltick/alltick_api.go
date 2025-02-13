@@ -1,8 +1,12 @@
-package utils
+package service
 
 import (
 	"encoding/json"
+	"fmt"
+	"io/ioutil"
 	"log"
+	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/google/uuid"
@@ -36,6 +40,56 @@ Stock API address:
 wss://quote.tradeswitcher.com/quote-stock-b-ws-api
 */
 const baseURL = "wss://quote.tradeswitcher.com/quote-b-ws-api?token="
+
+func HttpGoldPrice(token string) (string, error) {
+	// 构造请求体
+	requestBody := struct {
+		Data struct {
+			Code              string `json:"code"`
+			KlineType         string `json:"kline_type"`
+			KlineTimestampEnd string `json:"kline_timestamp_end"`
+			QueryKlineNum     string `json:"query_kline_num"`
+			AdjustType        string `json:"adjust_type"`
+		} `json:"data"`
+		Trace string `json:"trace"`
+	}{
+		Data: struct {
+			Code              string `json:"code"`
+			KlineType         string `json:"kline_type"`
+			KlineTimestampEnd string `json:"kline_timestamp_end"`
+			QueryKlineNum     string `json:"query_kline_num"`
+			AdjustType        string `json:"adjust_type"`
+		}{
+			Code:              "GOLD",
+			KlineType:         "1",
+			KlineTimestampEnd: "0",
+			QueryKlineNum:     "1",
+			AdjustType:        "0",
+		},
+		Trace: "6906e29e-8827-44d4-983d-34b8b0549b3b",
+	}
+
+	jsonData, err := json.Marshal(requestBody)
+	if err != nil {
+		return "", fmt.Errorf("marshal request body failed: %w", err)
+	}
+
+	url := fmt.Sprintf("https://quote.tradeswitcher.com/quote-b-api/kline?token=%s&query=%s",
+		token, url.QueryEscape(string(jsonData)))
+
+	resp, err := http.Get(url)
+	if err != nil {
+		return "", fmt.Errorf("request failed: %w", err)
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return "", fmt.Errorf("read response failed: %w", err)
+	}
+
+	return string(body), nil
+}
 
 func WebsocketGoldPrice(token string) {
 	url := baseURL + token

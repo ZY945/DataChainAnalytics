@@ -25,5 +25,10 @@ func (h *Handlers) RegisterRoutes(router *gin.Engine) {
 		{
 			alert.POST("/feishu/send", h.SendFeishuMessage)
 		}
+
+		gold := v1.Group("/gold")
+		{
+			gold.GET("/price", h.GetGoldPrice)
+		}
 	}
 }

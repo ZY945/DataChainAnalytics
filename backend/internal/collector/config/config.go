@@ -33,6 +33,10 @@ type Config struct {
 			Webhook   string `yaml:"webhook"`
 		} `yaml:"feishu"`
 	} `yaml:"alert"`
+
+	Gold struct {
+		Token string `yaml:"token"`
+	} `yaml:"gold"`
 }
 
 // LoadConfig 加载配置文件
