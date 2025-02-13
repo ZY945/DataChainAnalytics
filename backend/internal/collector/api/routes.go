@@ -28,7 +28,8 @@ func (h *Handlers) RegisterRoutes(router *gin.Engine) {
 
 		gold := v1.Group("/gold")
 		{
-			gold.GET("/price", h.GetGoldPrice)
+			gold.GET("/price", h.GetGoldPriceToFeishuText)
+			gold.GET("/alert/feishu/card", h.GetGoldPriceToFeishuCard)
 		}
 	}
 }

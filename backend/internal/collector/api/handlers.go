@@ -1,8 +1,10 @@
 package api
 
 import (
+	"encoding/json"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
 	"backend/internal/collector/config"
@@ -13,6 +15,25 @@ import (
 
 	"github.com/gin-gonic/gin"
 )
+
+// GoldPriceResponse 黄金价格响应结构
+type GoldPriceResponse struct {
+	Ret  int    `json:"ret"`
+	Msg  string `json:"msg"`
+	Data struct {
+		Code      string `json:"code"`
+		KlineType int    `json:"kline_type"`
+		KlineList []struct {
+			Timestamp  string `json:"timestamp"`
+			OpenPrice  string `json:"open_price"`
+			ClosePrice string `json:"close_price"`
+			HighPrice  string `json:"high_price"`
+			LowPrice   string `json:"low_price"`
+			Volume     string `json:"volume"`
+			Turnover   string `json:"turnover"`
+		} `json:"kline_list"`
+	} `json:"data"`
+}
 
 type Handlers struct {
 	db       *mysql.Client
@@ -186,7 +207,7 @@ func (h *Handlers) SendFeishuMessageGold(c *gin.Context) {
 }
 
 // GetGoldPrice 获取黄金价格并发送飞书通知
-func (h *Handlers) GetGoldPrice(c *gin.Context) {
+func (h *Handlers) GetGoldPriceToFeishuText(c *gin.Context) {
 	cfg, ok := h.config.(*config.Config)
 	if !ok {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid config type"})
@@ -200,11 +221,23 @@ func (h *Handlers) GetGoldPrice(c *gin.Context) {
 		return
 	}
 
-	// 构造消息内容
-	content := goldPrice
+	// 格式化消息内容
+	content, err := alltick.FormatGoldPrice(goldPrice)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
 	log.Println("黄金价格：", content)
-	// 发送飞书消息
-	if err := h.notifier.Send(notify.TypeInfo, "黄金价格更新", content); err != nil {
+
+	// 发送飞书卡片消息
+	feishuSvc, ok := h.notifier.(*notify.FeishuNotifyService)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid notifier type"})
+		return
+	}
+
+	if err := feishuSvc.Send(notify.TypeInfo, "黄金价格更新", content); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
@@ -212,5 +245,59 @@ func (h *Handlers) GetGoldPrice(c *gin.Context) {
 	c.JSON(http.StatusOK, gin.H{
 		"message": "Gold price fetched and notification sent",
 		"data":    goldPrice,
+	})
+}
+
+// GetGoldPriceToFeishuCard 发送卡片消息
+func (h *Handlers) GetGoldPriceToFeishuCard(c *gin.Context) {
+	cfg, ok := h.config.(*config.Config)
+	if !ok {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "invalid config type"})
+		return
+	}
+
+	// 获取黄金价格
+	goldPriceJson, err := alltick.HttpGoldPrice(cfg.Gold.Token)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	// 解析出goldPriceJson的json需要的参数
+	var goldResp GoldPriceResponse
+	if err := json.Unmarshal([]byte(goldPriceJson), &goldResp); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	// 转换时间戳为标准格式
+	timestamp, err := strconv.ParseInt(goldResp.Data.KlineList[0].Timestamp, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+	timeStr := time.Unix(timestamp, 0).Format("2006-01-02 15:04:05")
+
+	// 构造模板变量
+	variables := map[string]interface{}{
+		"opening_price":      goldResp.Data.KlineList[0].OpenPrice,
+		"closing_price":      goldResp.Data.KlineList[0].ClosePrice,
+		"maximum_price":      goldResp.Data.KlineList[0].HighPrice,
+		"bottom_price":       goldResp.Data.KlineList[0].LowPrice,
+		"time":               timeStr,
+		"turnover":           goldResp.Data.KlineList[0].Volume,
+		"transaction_volume": goldResp.Data.KlineList[0].Turnover,
+	}
+
+	// 发送飞书卡片消息
+	templateID := "templateID"
+	templateVersion := "1.0.0"
+	if err := h.notifier.SendCard("黄金价格更新", variables, templateID, templateVersion); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Gold price fetched and notification sent",
+		"data":    goldPriceJson,
 	})
 }

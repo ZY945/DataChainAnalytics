@@ -15,6 +15,7 @@ const (
 
 type NotifyService interface {
 	Send(msgType NotifyType, title string, content string) error
+	SendCard(title string, content interface{}, templateID string, templateVersionName string) error
 }
 
 // 默认通知服务实现
@@ -41,6 +42,21 @@ func (s *defaultNotifyService) Send(msgType NotifyType, title string, content st
 			return fmt.Errorf("send feishu message failed: %w", err)
 		} else {
 			s.logger.Println("send feishu message success")
+		}
+	} else {
+		s.logger.Println("feishuSvc is nil")
+	}
+
+	return nil
+}
+
+func (s *defaultNotifyService) SendCard(title string, content interface{}, templateID string, templateVersionName string) error {
+	// 调用飞书通知
+	if s.feishuSvc != nil {
+		if err := s.feishuSvc.SendCard(title, content, templateID, templateVersionName); err != nil {
+			return fmt.Errorf("send feishu card message failed: %w", err)
+		} else {
+			s.logger.Println("send feishu card message success")
 		}
 	} else {
 		s.logger.Println("feishuSvc is nil")
