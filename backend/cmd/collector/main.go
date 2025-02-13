@@ -4,9 +4,9 @@ import (
 	"flag"
 	"log"
 
-	"github.com/yourusername/projectname/internal/collector/config"
-	"github.com/yourusername/projectname/internal/collector/service"
-	"github.com/yourusername/projectname/pkg/persistence/mysql"
+	"backend/internal/collector/config"
+	"backend/internal/collector/service"
+	"backend/pkg/persistence/mysql"
 )
 
 func main() {

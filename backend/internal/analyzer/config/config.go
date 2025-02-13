@@ -5,7 +5,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/yourusername/projectname/pkg/persistence/mysql"
+	"backend/pkg/persistence/mysql"
+
 	"gopkg.in/yaml.v2"
 )
 

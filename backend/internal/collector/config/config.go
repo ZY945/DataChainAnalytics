@@ -5,7 +5,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/yourusername/projectname/pkg/persistence/mysql"
+	"backend/pkg/persistence/mysql"
+
 	"gopkg.in/yaml.v2"
 )
 
@@ -24,6 +25,14 @@ type Config struct {
 		Interval  int `yaml:"interval"`
 		BatchSize int `yaml:"batch_size"`
 	} `yaml:"collector"`
+
+	Alert struct {
+		FeishuConfig struct {
+			AppID     string `yaml:"app_id"`
+			AppSecret string `yaml:"app_secret"`
+			Webhook   string `yaml:"webhook"`
+		} `yaml:"feishu"`
+	} `yaml:"alert"`
 }
 
 // LoadConfig 加载配置文件

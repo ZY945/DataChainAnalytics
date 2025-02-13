@@ -4,10 +4,11 @@ import (
 	"fmt"
 	"log"
 
+	"backend/internal/analyzer/api"
+	"backend/internal/analyzer/config"
+	"backend/pkg/persistence/mysql"
+
 	"github.com/gin-gonic/gin"
-	"github.com/yourusername/projectname/internal/analyzer/api"
-	"github.com/yourusername/projectname/internal/analyzer/config"
-	"github.com/yourusername/projectname/pkg/persistence/mysql"
 )
 
 type AnalyzerService struct {

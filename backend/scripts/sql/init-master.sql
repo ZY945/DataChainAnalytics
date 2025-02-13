@@ -147,4 +147,23 @@ INSERT INTO webhooks (name, url, task_ids, retry_times, retry_interval) VALUES
 ('数据同步回调', 'https://api.example.com/webhook/sync',
  '[1, 2]',
  3, 1000
-); 
+);
+
+-- 配置表
+CREATE TABLE `api_config` (
+  `id` bigint unsigned NOT NULL AUTO_INCREMENT COMMENT '主键ID',
+  `name` varchar(64) NOT NULL COMMENT 'API名称',
+  `url` varchar(255) NOT NULL COMMENT 'API地址',
+  `token` varchar(255) DEFAULT NULL COMMENT '认证token',
+  `secret` varchar(255) DEFAULT NULL COMMENT '密钥',
+  `type` tinyint NOT NULL DEFAULT '1' COMMENT 'API类型: 1-WebSocket 2-HTTP 3-其他',
+  `status` tinyint NOT NULL DEFAULT '1' COMMENT '状态: 0-停用 1-启用',
+  `is_deleted` tinyint NOT NULL DEFAULT '0' COMMENT '是否删除: 0-否 1-是',
+  `created_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `updated_at` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `uk_name` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='API配置表'; 
+
+INSERT INTO api_config (name, url, token, type) VALUES 
+('alltick_gold', 'wss://quote.tradeswitcher.com/quote-b-ws-api', 'your-token', 1); 
