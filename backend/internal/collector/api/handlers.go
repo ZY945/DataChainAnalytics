@@ -1,22 +1,27 @@
 package api
 
 import (
+	"net/http"
 	"time"
 
+	"backend/internal/collector/model"
+	"backend/internal/notify"
+	"backend/pkg/persistence/mysql"
+
 	"github.com/gin-gonic/gin"
-	"github.com/yourusername/projectname/internal/collector/model"
-	"github.com/yourusername/projectname/pkg/persistence/mysql"
 )
 
 type Handlers struct {
-	db     *mysql.Client
-	config interface{} // 根据需要定义配置类型
+	db       *mysql.Client
+	config   interface{}
+	notifier notify.NotifyService
 }
 
-func NewHandlers(db *mysql.Client, config interface{}) *Handlers {
+func NewHandlers(db *mysql.Client, config interface{}, notifier notify.NotifyService) *Handlers {
 	return &Handlers{
-		db:     db,
-		config: config,
+		db:       db,
+		config:   config,
+		notifier: notifier,
 	}
 }
 
@@ -104,5 +109,40 @@ func (h *Handlers) GetStatus(c *gin.Context) {
 	c.JSON(200, gin.H{
 		"status":    "running",
 		"timestamp": time.Now().Unix(),
+	})
+}
+
+// SendFeishuMessage 发送飞书消息
+func (h *Handlers) SendFeishuMessage(c *gin.Context) {
+	var req struct {
+		Title   string `json:"title" binding:"required"`
+		Content string `json:"content" binding:"required"`
+		Type    string `json:"type" binding:"required,oneof=info warning error"`
+	}
+
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	// 转换消息类型
+	var msgType notify.NotifyType
+	switch req.Type {
+	case "info":
+		msgType = notify.TypeInfo
+	case "warning":
+		msgType = notify.TypeWarning
+	case "error":
+		msgType = notify.TypeError
+	}
+
+	// 发送消息
+	if err := h.notifier.Send(msgType, req.Title, req.Content); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{
+		"message": "Message sent successfully",
 	})
 }

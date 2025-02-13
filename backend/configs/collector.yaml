@@ -16,3 +16,8 @@ database:
 collector:
   interval: 5  # 采集间隔（秒）
   batch_size: 100  # 批量处理大小 
+
+alert:
+  feishu:
+    webhook: "your_webhook_url"
+    app_secret: "your_app_secret"

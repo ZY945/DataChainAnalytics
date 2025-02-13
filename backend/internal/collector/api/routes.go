@@ -20,5 +20,10 @@ func (h *Handlers) RegisterRoutes(router *gin.Engine) {
 			collector.GET("/status", h.GetStatus)
 			collector.GET("/config", h.GetConfig)
 		}
+		// 数据采集相关接口
+		alert := v1.Group("/alert")
+		{
+			alert.POST("/feishu/send", h.SendFeishuMessage)
+		}
 	}
 }

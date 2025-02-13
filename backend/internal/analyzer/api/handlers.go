@@ -1,11 +1,14 @@
 package api
 
 import (
+	"net/http"
 	"time"
 
+	"backend/internal/analyzer/model"
+	"backend/pkg/persistence/mysql"
+	"backend/pkg/persistence/mysql/models"
+
 	"github.com/gin-gonic/gin"
-	"github.com/yourusername/projectname/internal/analyzer/model"
-	"github.com/yourusername/projectname/pkg/persistence/mysql"
 )
 
 type Handlers struct {
@@ -78,4 +81,91 @@ func (h *Handlers) GetStatus(c *gin.Context) {
 		"timestamp":     time.Now().Unix(),
 		"pending_tasks": taskCount,
 	})
+}
+
+// 创建 API 配置
+
+// 创建 API 配置
+func (h *Handlers) CreateConfig(c *gin.Context) {
+	var config models.APIConfig
+	if err := c.ShouldBindJSON(&config); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := h.db.DB().Create(&config).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, config)
+}
+
+// 更新 API 配置
+func (h *Handlers) UpdateConfig(c *gin.Context) {
+	var config models.APIConfig
+	if err := c.ShouldBindJSON(&config); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := h.db.DB().Save(&config).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, config)
+}
+
+// 获取所有 API 配置
+func (h *Handlers) ListConfig(c *gin.Context) {
+	var configs []models.APIConfig
+	if err := h.db.DB().Where("is_deleted = ?", 0).Find(&configs).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, configs)
+}
+
+// 获取单个 API 配置
+func (h *Handlers) GetOneConfig(c *gin.Context) {
+	id := c.Param("id")
+	var config models.APIConfig
+	if err := h.db.DB().First(&config, id).Error; err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "API config not found"})
+		return
+	}
+
+	c.JSON(http.StatusOK, config)
+}
+
+// 删除 API 配置（软删除）
+func (h *Handlers) DeleteConfig(c *gin.Context) {
+	id := c.Param("id")
+	if err := h.db.DB().Model(&models.APIConfig{}).Where("id = ?", id).Update("is_deleted", 1).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "API config deleted successfully"})
+}
+
+// 更新 API 状态
+func (h *Handlers) UpdateStatusConfig(c *gin.Context) {
+	id := c.Param("id")
+	var req struct {
+		Status int8 `json:"status"`
+	}
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if err := h.db.DB().Model(&models.APIConfig{}).Where("id = ?", id).Update("status", req.Status).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	c.JSON(http.StatusOK, gin.H{"message": "Status updated successfully"})
 }
